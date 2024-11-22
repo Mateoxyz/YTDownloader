@@ -23,9 +23,6 @@ def TemporalPath():
 
 
 def RestorePath(original_path):
-    """
-    Restaura el PATH del sistema al valor original.
-    """
     if original_path:
         os.environ["PATH"] = original_path
  
@@ -47,6 +44,10 @@ class DownloaderApp(tk.Tk):
     
     def __init__(self):
         super().__init__()
+        
+        self.lang = readJson('langs.json')
+        self.lang = self.lang[self.lang['currentLanguage']]
+        
         self.title("YTDownloader")
         self.geometry("910x545")
         self.iconbitmap("Assets/Images/YTDownload.ico")
@@ -89,30 +90,29 @@ class DownloaderApp(tk.Tk):
         
         tk.Label(frame2, bg="#333", width=15).grid(column=6, row=2, padx=10, pady=10)
         
-        searchbutton = tk.Button(frame2, text="Search", width=15, command=lambda: self.executor.submit(self.StartSearch, urlentry.get(), filenameentry, durationLabel, weigthLabel, thumbnailLabel))
+        searchbutton = tk.Button(frame2, text=self.lang['search'], width=15, command=lambda: self.executor.submit(self.StartSearch, urlentry.get(), filenameentry, durationLabel, weigthLabel, thumbnailLabel))
         searchbutton.grid(column=6, row=1)
         
         
         tk.Label(frame, text="_______________________________________________________________________________________________________________________", font=50, bg="#333", fg="#666").grid(column=0, row=3, columnspan=10, pady=10)
         
-        tk.Label(frame2, text="Datos del Video:                                             ", bg="#333", fg="#fff", font=35).grid(column=0, row=3, columnspan=3, padx=10, pady=10)
+        tk.Label(frame2, text=f"{self.lang['videoDataLabel']}:                                             ", bg="#333", fg="#fff", font=35).grid(column=0, row=3, columnspan=3, padx=10, pady=10)
         
         self.thumbnail = None
         
         tk.Label(frame2, bg="#333", width=50, height=12, justify="center").grid(column=1, row=4, columnspan=3, rowspan=3, sticky='nsew')
         
-        thumbnailLabel = tk.Label(frame2, bg="#444", width=50, height=12, justify="center", image=self.thumbnail)
-        thumbnailLabel.place(x=65, y=135, width=350, height=191)
-        
-        tk.Label(frame2, text="           Thumbnail", bg="#333", fg="#fff", font=15).grid(column=1, row=7, padx=10, pady=10, columnspan=2)
         
         
-        tk.Label(frame2, text="File name:", bg="#333", foreground="#fff", font=15).grid(column=4, row=4)
+        tk.Label(frame2, text=f"           {self.lang['thumbnailLabel']}", bg="#333", fg="#fff", font=15).grid(column=1, row=7, padx=10, pady=10, columnspan=2)
+        
+        
+        tk.Label(frame2, text=f"{self.lang['fileNameLabel']}:", bg="#333", foreground="#fff", font=15).grid(column=4, row=4)
         
         filenameentry = tk.Entry(frame2, width=50)
         filenameentry.grid(column=5, row=4, padx=10, columnspan=3)
         
-        tk.Label(frame2, text="Format: ", bg="#333", foreground="#fff", font=15).grid(column=4, row=5, padx=10)
+        tk.Label(frame2, text=f"{self.lang['formatLabel']}:", bg="#333", foreground="#fff", font=15).grid(column=4, row=5, padx=10)
         
         options = ["----VIDEO----",
                   "MP4",
@@ -122,13 +122,13 @@ class DownloaderApp(tk.Tk):
                   "OGG",]  
         
         self.selectedformat = tk.StringVar()
-        self.selectedformat.set("Select an option")
+        self.selectedformat.set(self.lang['optionMenu'])
 
         formatvideo = tk.OptionMenu(frame2, self.selectedformat, *options)  
         formatvideo.config(width=25)
         formatvideo.grid(column=5, row=5, padx=10, columnspan=2, sticky='e')
         
-        tk.Label(frame2, text="Quality: ", bg="#333", foreground="#fff", font=15).grid(column=4, row=6, padx=10)
+        tk.Label(frame2, text=f"{self.lang['qualityLabel']}:", bg="#333", foreground="#fff", font=15).grid(column=4, row=6, padx=10)
 
         options = ["1080p",
                    "720p",
@@ -138,23 +138,26 @@ class DownloaderApp(tk.Tk):
                    "144p"]  
         
         self.selectedquality = tk.StringVar()
-        self.selectedquality.set("Select an option")
+        self.selectedquality.set(self.lang['optionMenu'])
 
         formatvideo = tk.OptionMenu(frame2, self.selectedquality, *options)  
         formatvideo.config(width=25)
         formatvideo.grid(column=5, row=6, padx=10, columnspan=2, sticky='e')
         
-        durationLabel = tk.Label(frame2, text="  Estimated duration: --",  bg="#333", foreground="#fff", font=15)
+        durationLabel = tk.Label(frame2, text=f"   {self.lang['estimatedDurationLabel']}: --",  bg="#333", foreground="#fff", font=15)
         durationLabel.grid(column=4, row=7, pady=10, columnspan=2, sticky='w')
         
-        weigthLabel = tk.Label(frame2, text="Estimated file size: --",  bg="#333", foreground="#fff", font=15)
+        weigthLabel = tk.Label(frame2, text=f"{self.lang['estimatedFileSize']}: --",  bg="#333", foreground="#fff", font=15)
         weigthLabel.grid(column=5, row=7, pady=10, columnspan=2, sticky='e')
         
         self.progressbar = ttk.Progressbar(frame2, orient="horizontal", length=880, mode="determinate")
         self.progressbar.grid(column=0, row=9, columnspan=7, pady=10)
 
-        downloadbutton = tk.Button(frame2, text="Download", width=50, height=2, command=lambda: self.executor.submit(self.StartDownload, urlentry.get(), filenameentry.get(), self.selectedformat.get(), self.selectedquality.get()))
+        downloadbutton = tk.Button(frame2, text=self.lang['downloadLabel'], width=50, height=2, command=lambda: self.executor.submit(self.StartDownload, urlentry.get(), filenameentry.get(), self.selectedformat.get(), self.selectedquality.get()))
         downloadbutton.grid(column=1, row=8, columnspan=5, pady=10)
+        
+        thumbnailLabel = tk.Label(frame2, bg="#444", width=50, height=12, justify="center", image=self.thumbnail)
+        thumbnailLabel.place(x=65, y=135, width=350, height=191)
         
         self.data = {}
         
@@ -164,7 +167,7 @@ class DownloaderApp(tk.Tk):
         
 
         try:
-            self.data = readJson()
+            self.data = readJson('config.json')
             
             quality_map = {
                 "1080p": "bestvideo[height<=1080]+bestaudio/best",
@@ -216,11 +219,11 @@ class DownloaderApp(tk.Tk):
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([url])  
                 self.is_downloading = False
-                messagebox.showinfo("Descarga", "Descarga completa!") 
+                messagebox.showinfo(self.lang['downloadLabel'], self.lang['downloadComplete']) 
                 self.progressbar['value'] = 0
         
         except Exception as e:
-            messagebox.showerror("Error", f"Error: {e}")
+            messagebox.showerror(self.lang['error'], f"{self.lang['error']}: {e}")
             return
         
             
@@ -235,19 +238,19 @@ class DownloaderApp(tk.Tk):
             info_dict = ydl.extract_info(url, download=False)
 
             fileNameEntry.delete(0, tk.END)
-            fileNameEntry.insert(0, info_dict.get('title', 'Sin título'))
+            fileNameEntry.insert(0, info_dict.get('title', 'video'))
 
             duration = info_dict.get('duration', 0)
             filesize = info_dict.get('filesize_approx', 0)
 
             minutes, seconds = divmod(duration, 60)
             duration_formatted = f"{minutes:02}:{seconds:02}"
-            durationLabel.config(text=f"  Estimated duration: {duration_formatted}")
+            durationLabel.config(text=f"   {self.lang['estimatedDurationLabel']}: {duration_formatted}")
 
             if filesize:
-                weightLabel.config(text=f"Estimated file size: {filesize / (1024 * 1024):.2f} MB")
+                weightLabel.config(text=f"{self.lang['estimatedFileSize']}: {filesize / (1024 * 1024):.2f} MB")
             else:
-                weightLabel.config(text="Estimated file size: Not available")
+                weightLabel.config(text=f"{self.lang['estimatedFileSize']}: {self.lang['notAvailable']}")
                 
             thumbnail_url = info_dict.get('thumbnail', None)
             
@@ -283,12 +286,12 @@ class DownloaderApp(tk.Tk):
                     self.info(url, fileNameEntry, durationLabel, weightLabel, thumbLabel)
                 
                 else:
-                    messagebox.showinfo("Busqueda", "Ingresa una URL.")
+                    messagebox.showinfo(self.lang['search'], self.lang['infoURL'])
             
             else:
-                messagebox.showinfo("Busqueda", "Hay una descarga en progreso, intentalo mas tarde.")
+                messagebox.showinfo(self.lang['search'], self.lang['downloadInProgress'])
         else:
-            messagebox.showinfo("Busqueda", "Ya hay una busqueda en progreso, intentalo mas tarde")
+            messagebox.showinfo(self.lang['search'], self.lang['searchInProgress'])
     
     def StartDownload(self, url, filename, selected_format, selected_quality):
         if not self.is_downloading:
@@ -297,10 +300,10 @@ class DownloaderApp(tk.Tk):
                 self.download(url, filename, selected_format, selected_quality)
             
             else:
-                messagebox.showinfo("Descarga", "Ingreasa una URL")
+                messagebox.showinfo(self.lang['downloadLabel'], {self.lang['infoURL']})
         
         else: 
-            messagebox.showinfo("Descarga", "Ya hay una descarga en curso. Por favor, espere a que termine.")
+            messagebox.showinfo(self.lang['downloadLabel'], self.lang['downloadInProgress2'])
 
     
 if __name__ == "__main__":
