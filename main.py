@@ -2,8 +2,8 @@ import os, sys
 
 def TemporalPath():
     """
-    Modifica temporalmente el PATH del sistema para incluir el directorio de ffmpeg.
-    Devuelve el valor original del PATH para restaurarlo posteriormente.
+    Temporarily changes the system PATH to include the ffmpeg directory.
+    Returns the original PATH value for later restoration.
     """
     
     if getattr(sys, 'frozen', False):
@@ -23,6 +23,9 @@ def TemporalPath():
 
 
 def RestorePath(original_path):
+    """
+    Restore the PATH
+    """
     if original_path:
         os.environ["PATH"] = original_path
  
@@ -76,7 +79,7 @@ class DownloaderApp(tk.Tk):
         self.configIcon = ImageTk.PhotoImage(resized_imageconfig)
         
         configButton = tk.Button(frame, image=self.configIcon, text="config", bg="#222", fg="#fff", activebackground="#222", width=15, height=4, bd=0, highlightthickness=0, command=config)
-        configButton.grid(column=7, row=0, sticky='nsew' )
+        configButton.place(x=850, y=13, width=50, height=50)
         
 
         frame2 = tk.Frame(frame, bg="#333")
@@ -300,7 +303,7 @@ class DownloaderApp(tk.Tk):
                 self.download(url, filename, selected_format, selected_quality)
             
             else:
-                messagebox.showinfo(self.lang['downloadLabel'], {self.lang['infoURL']})
+                messagebox.showinfo(self.lang['downloadLabel'], self.lang['infoURL'])
         
         else: 
             messagebox.showinfo(self.lang['downloadLabel'], self.lang['downloadInProgress2'])
