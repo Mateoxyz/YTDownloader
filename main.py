@@ -1,39 +1,7 @@
-import os, sys
-
-def TemporalPath():
-    """
-    Temporarily changes the system PATH to include the ffmpeg directory.
-    Returns the original PATH value for later restoration.
-    """
-    
-    if getattr(sys, 'frozen', False):
-        current_dir = os.path.dirname(sys.executable)
-    else:
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-
-    
-    tempDir = os.path.join(current_dir, "ffmpeg", "bin")
-    
-    
-    original_path = os.environ.get("PATH", "")
-    
-    
-    os.environ["PATH"] = f"{tempDir}{os.pathsep}{original_path}"
-    return original_path
-
-
-def RestorePath(original_path):
-    """
-    Restore the PATH
-    """
-    if original_path:
-        os.environ["PATH"] = original_path
- 
-
+import os
+from modifyPATH import TemporalPath, RestorePath
 
 original_path = TemporalPath()
-
-
 
 import yt_dlp
 import tkinter as tk
@@ -167,7 +135,9 @@ class DownloaderApp(tk.Tk):
         self.original_path = None
         
     def download(self, url, filename, selected_format, selected_quality):
-        
+        """
+        Determine the video quality and download path, then start downloading
+        """
 
         try:
             self.data = readJson('config.json')
@@ -231,7 +201,11 @@ class DownloaderApp(tk.Tk):
         
             
     
-    def info(self, url, fileNameEntry, durationLabel, weightLabel, thumbLabel):
+    def metadata(self, url, fileNameEntry, durationLabel, weightLabel, thumbLabel):
+        """
+        Collects the URL metadata and displays it.
+        """
+        
         ydl_opts = {
             'noplaylist': True,
             'format': 'bestvideo+bestaudio/best',
@@ -267,6 +241,10 @@ class DownloaderApp(tk.Tk):
             self.is_searching = False
                 
     def progress_hook(self, d):
+        """
+        Update the progress bar.
+        """
+        
         if d['status'] == 'downloading':
             if 'downloaded_bytes' in d and 'total_bytes' in d:
                 downloaded = d['downloaded_bytes']
@@ -286,7 +264,7 @@ class DownloaderApp(tk.Tk):
             if not self.is_downloading:
                 if url != "":
                     self.is_searching = True
-                    self.info(url, fileNameEntry, durationLabel, weightLabel, thumbLabel)
+                    self.metadata(url, fileNameEntry, durationLabel, weightLabel, thumbLabel)
                 
                 else:
                     messagebox.showinfo(self.lang['search'], self.lang['infoURL'])
