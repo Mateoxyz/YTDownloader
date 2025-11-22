@@ -228,6 +228,10 @@ class DownloaderApp(QMainWindow):
         self.format_combo = QComboBox()
         self.format_combo.addItems(["----VIDEO----", "MP4", "----AUDIO----", "MP3", "WAV", "OGG"])
         self.format_combo.setCurrentIndex(1)
+        for disabled_index in (0, 2):
+            item = self.format_combo.model().item(disabled_index)
+            if item:
+                item.setFlags(item.flags() & ~Qt.ItemIsEnabled)
         form_layout.addWidget(format_label, 4, 4)
         form_layout.addWidget(self.format_combo, 4, 5, 1, 2)
 
@@ -263,6 +267,22 @@ class DownloaderApp(QMainWindow):
 
         self.thumbnail = None
 
+    def update_action_states(self):
+        self.search_button.setEnabled(not self.is_searching and not self.is_downloading)
+        self.download_button.setEnabled(not self.is_downloading and not self.is_searching)
+
+    def set_search_state(self, running: bool):
+        self.is_searching = running
+        self.search_button.setText(f"{self.lang['search']}..." if running else self.lang["search"])
+        self.update_action_states()
+
+    def set_download_state(self, running: bool):
+        self.is_downloading = running
+        self.download_button.setText(
+            f"{self.lang['downloadLabel']}..." if running else self.lang["downloadLabel"]
+        )
+        self.update_action_states()
+
     def show_message(self, title: str, message: str, icon=QMessageBox.Information):
         QMessageBox(icon, title, message, parent=self).exec()
 
@@ -278,7 +298,7 @@ class DownloaderApp(QMainWindow):
             self.show_message(self.lang["search"], self.lang["infoURL"])
             return
 
-        self.is_searching = True
+        self.set_search_state(True)
         self.search_thread = QThread()
         self.metadata_worker = MetadataWorker(url)
         self.metadata_worker.moveToThread(self.search_thread)
@@ -314,15 +334,19 @@ class DownloaderApp(QMainWindow):
             pixmap = pixmap.scaled(350, 191, Qt.KeepAspectRatio, Qt.SmoothTransformation)
             self.thumbnail_label.setPixmap(pixmap)
 
-        self.is_searching = False
+        self.set_search_state(False)
 
     def on_metadata_error(self, error_message: str):
         self.show_message(self.lang["error"], f"{self.lang['error']}: {error_message}", QMessageBox.Critical)
-        self.is_searching = False
+        self.set_search_state(False)
 
     def start_download(self):
         if self.is_downloading:
             self.show_message(self.lang["downloadLabel"], self.lang["downloadInProgress2"])
+            return
+
+        if self.is_searching:
+            self.show_message(self.lang["downloadLabel"], self.lang["searchInProgress"])
             return
 
         url = self.url_entry.text().strip()
@@ -334,7 +358,12 @@ class DownloaderApp(QMainWindow):
         selected_format = self.format_combo.currentText()
         selected_quality = self.quality_combo.currentText()
 
-        self.is_downloading = True
+        if selected_format.startswith("-"):
+            self.show_message(self.lang["error"], self.lang["formatLabel"], QMessageBox.Warning)
+            return
+
+        self.set_download_state(True)
+        self.progressbar.setValue(0)
 
         self.download_thread = QThread()
         self.download_worker = DownloadWorker(url, filename, selected_format, selected_quality)
@@ -352,12 +381,12 @@ class DownloaderApp(QMainWindow):
         self.progressbar.setValue(int(value))
 
     def on_download_finished(self):
-        self.is_downloading = False
+        self.set_download_state(False)
         self.progressbar.setValue(0)
         self.show_message(self.lang["downloadLabel"], self.lang["downloadComplete"])
 
     def on_download_error(self, error_message: str):
-        self.is_downloading = False
+        self.set_download_state(False)
         self.show_message(self.lang["error"], f"{self.lang['error']}: {error_message}", QMessageBox.Critical)
 
 
